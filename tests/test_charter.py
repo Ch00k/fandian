@@ -50,6 +50,19 @@ def test_without_mail_harness_or_an_account_the_charter_has_neither_section(proj
         ]
 
 
+def test_the_mailbox_section_names_the_addresses_that_exist_when_the_profile_limits_them(project):
+    """With allowed_recipients, the tester learns that only matching addresses receive mail and any
+    other bounces; without it, every address receives mail and the section says nothing of it."""
+    loaded = target.load(str(project))
+    newcomer = persona.load(loaded, "newcomer")
+
+    limited = charter.compose(loaded, newcomer, None)
+    unlimited = charter.compose(replace(loaded, mail=target.Mail(None)), newcomer, None)
+
+    assert "Only addresses matching the pattern `@example\\.[a-z]+$` exist" in limited
+    assert "bounces" not in unlimited
+
+
 def test_the_charter_tells_nothing_of_how_the_product_is_set_up(project):
     """The profile's header is fandian's: its accounts, command and mail settings never reach the
     tester."""

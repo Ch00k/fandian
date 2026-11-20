@@ -69,7 +69,7 @@ SMTP_HOST = "mailpit"
 SMTP_PORT = "1025"
 
 [mail]  # optional; present = a Mailpit inbox beside the instance, and the tester's mailbox
-allowed_recipients = '@example\.[a-z]+$'  # optional; Mailpit refuses any other address, as a bounce
+allowed_recipients = '@example\.[a-z]+$'  # optional; any other address bounces, and the tester is told so
 
 [accounts]  # from the seed, by the keys personas name
 user = { email = "dev@example.com", password = "devpassword" }
