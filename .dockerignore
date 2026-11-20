@@ -1,0 +1,5 @@
+# Only what the Dockerfile copies. The charter is composed on the host and mounted.
+*
+!claude-config.json
+!entrypoint.sh
+!progress.jq

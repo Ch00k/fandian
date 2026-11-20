@@ -1,0 +1,12 @@
+{
+  "hasCompletedOnboarding": true,
+  "theme": "dark",
+  "bypassPermissionsModeAccepted": true,
+  "projects": {
+    "/work": {
+      "hasTrustDialogAccepted": true,
+      "enableAllProjectMcpServers": true,
+      "enabledMcpjsonServers": ["playwright"]
+    }
+  }
+}
