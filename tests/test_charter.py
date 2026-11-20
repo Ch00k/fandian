@@ -18,10 +18,10 @@ def sections(text: str) -> list[str]:
 
 
 def test_the_charter_runs_core_mode_inbox_reporting_target_persona_focus(project):
-    write(project, "focus/invoices.md", '+++\npersonas = ["explorer"]\n+++\n\n## FOCUS: invoices\n')
+    write(project, "focus/search.md", '+++\npersonas = ["explorer"]\n+++\n\n## FOCUS: search\n')
     loaded = target.load(str(project))
 
-    composed = charter.compose(loaded, persona.load(loaded, "explorer"), "invoices")
+    composed = charter.compose(loaded, persona.load(loaded, "explorer"), "search")
 
     assert sections(composed) == [
         "# Exploratory test charter",
@@ -30,7 +30,7 @@ def test_the_charter_runs_core_mode_inbox_reporting_target_persona_focus(project
         "## Reporting: GitHub issues and your run directory",
         "## TARGET: Example",
         "## PERSONA: explorer",
-        "## FOCUS: invoices",
+        "## FOCUS: search",
     ]
     assert "+++" not in composed
 

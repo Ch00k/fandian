@@ -36,7 +36,7 @@ def test_a_token_that_reaches_the_repository_creates_the_missing_labels(monkeypa
     api = GitHub(labels=["fandian", "bug"])
     monkeypatch.setattr(github, "call", api)
 
-    wanted = github.labels("explorer", "invoices")
+    wanted = github.labels("explorer", "search")
     assert github.check(TOKEN, REPO, wanted) == "private"
 
     assert set(wanted) <= api.labels
@@ -46,13 +46,13 @@ def test_a_token_that_reaches_the_repository_creates_the_missing_labels(monkeypa
 
 
 def test_labels_cover_every_severity_oracle_and_the_runs_persona_and_focus():
-    wanted = github.labels("explorer", "invoices")
+    wanted = github.labels("explorer", "search")
 
     assert {"fandian", "fandian-run", "fandian:appears-fixed"} <= set(wanted)
     assert {f"severity:{s}" for s in ("blocker", "major", "minor", "cosmetic")} <= set(wanted)
     assert "oracle:guide" in wanted and "oracle:conventions" in wanted
-    assert {"persona:explorer", "focus:invoices"} <= set(wanted)
-    assert "focus:invoices" not in github.labels("explorer", None)
+    assert {"persona:explorer", "focus:search"} <= set(wanted)
+    assert "focus:search" not in github.labels("explorer", None)
 
 
 def test_every_label_page_is_read(monkeypatch):

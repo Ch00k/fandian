@@ -10,12 +10,12 @@ EXPLORER = Persona("explorer", enabled=True, account="user", body="")
 
 
 @pytest.fixture
-def pilot(project):
+def example(project):
     return target.load(str(project))
 
 
-def test_the_container_gets_the_target_its_mode_inbox_guide_and_account(pilot):
-    assert run.container_settings(pilot, EXPLORER, None) == {
+def test_the_container_gets_the_target_its_mode_inbox_guide_and_account(example):
+    assert run.container_settings(example, EXPLORER, None) == {
         "TARGET": "example-app",
         "PERSONA": "explorer",
         "MODE": "oracle",
@@ -29,8 +29,8 @@ def test_the_container_gets_the_target_its_mode_inbox_guide_and_account(pilot):
     }
 
 
-def test_a_target_without_mail_or_guide_passes_neither(pilot):
-    bare = replace(pilot, mail=None, guide_urls=None)
+def test_a_target_without_mail_or_guide_passes_neither(example):
+    bare = replace(example, mail=None, guide_urls=None)
 
     passed = run.container_settings(bare, EXPLORER, None)
 
@@ -39,26 +39,26 @@ def test_a_target_without_mail_or_guide_passes_neither(pilot):
     assert "GUIDE_URLS" not in passed
 
 
-def test_a_persona_without_an_account_starts_signed_out(pilot):
-    passed = run.container_settings(pilot, replace(EXPLORER, account=None), None)
+def test_a_persona_without_an_account_starts_signed_out(example):
+    passed = run.container_settings(example, replace(EXPLORER, account=None), None)
 
     assert not any(name.startswith("ACCOUNT") for name in passed)
 
 
-def test_a_focused_run_passes_its_focus_and_is_named_by_it(pilot):
-    assert run.container_settings(pilot, EXPLORER, "invoices")["FOCUS"] == "invoices"
-    assert run.run_name(pilot, EXPLORER, "invoices") == "example-app-explorer-invoices"
-    assert run.run_name(pilot, EXPLORER, None) == "example-app-explorer"
+def test_a_focused_run_passes_its_focus_and_is_named_by_it(example):
+    assert run.container_settings(example, EXPLORER, "search")["FOCUS"] == "search"
+    assert run.run_name(example, EXPLORER, "search") == "example-app-explorer-search"
+    assert run.run_name(example, EXPLORER, None) == "example-app-explorer"
 
 
-def test_a_switched_off_persona_is_refused(pilot):
+def test_a_switched_off_persona_is_refused(example):
     with pytest.raises(SystemExit, match="switched off"):
-        run.container_settings(pilot, replace(EXPLORER, enabled=False), None)
+        run.container_settings(example, replace(EXPLORER, enabled=False), None)
 
 
-def test_a_persona_whose_account_the_target_lacks_is_refused(pilot):
+def test_a_persona_whose_account_the_target_lacks_is_refused(example):
     with pytest.raises(SystemExit, match="'admin', which the example-app profile"):
-        run.container_settings(pilot, replace(EXPLORER, account="admin"), None)
+        run.container_settings(example, replace(EXPLORER, account="admin"), None)
 
 
 def test_the_agent_joins_the_instance_and_gets_settings_by_name_only():

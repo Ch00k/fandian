@@ -32,7 +32,7 @@ Then fill in `.env`:
 fand run ~/projects/example explorer                  # a session of the explorer persona
 fand run https://github.com/owner/example explorer    # the same, cloned from the repository
 fand run ~/projects/example explorer --check          # start the instance, print the wiring, stop
-fand run ~/projects/example explorer --focus invoices # one feature only
+fand run ~/projects/example explorer --focus search # one feature only
 ```
 
 A repository is cloned into `~/.cache/fandian/` with your own git credentials, and brought up to date on each run.

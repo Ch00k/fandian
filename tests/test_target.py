@@ -114,12 +114,12 @@ def test_a_repository_is_cloned_into_the_cache_and_brought_up_to_date(
 
 
 def test_a_focus_is_refused_for_a_persona_it_is_not_written_for(project):
-    write(project, "focus/invoices.md", '+++\npersonas = ["explorer"]\n+++\n\n## FOCUS\n')
+    write(project, "focus/search.md", '+++\npersonas = ["explorer"]\n+++\n\n## FOCUS\n')
     loaded = target.load(str(project))
 
-    target.check_focus(loaded, "invoices", "explorer")
+    target.check_focus(loaded, "search", "explorer")
     with pytest.raises(HeaderError, match="written for explorer, not novice"):
-        target.check_focus(loaded, "invoices", "novice")
+        target.check_focus(loaded, "search", "novice")
 
 
 def test_a_missing_focus_is_refused(project):

@@ -36,9 +36,9 @@ gh api --paginate "repos/$GH_REPO/issues?per_page=100&<filter>" \
 
 - **Still reproduces:** do not file it again, and do not comment just to say so. Comment only when the behaviour has
   **changed** (worse, different or narrower), with the new evidence.
-- **Appears fixed:** add the label `fandian:appears-fixed`
-  (`gh issue edit <number> --add-label fandian:appears-fixed`) and comment with what you did and saw. **Never close a
-  finding**: closing is the owner's call, or the fix's own pull request.
+- **Appears fixed:** add the label `fandian:appears-fixed` (`gh issue edit <number> --add-label fandian:appears-fixed`)
+  and comment with what you did and saw. **Never close a finding**: closing is the owner's call, or the fix's own pull
+  request.
 - **Labelled `fandian:appears-fixed` but reproduces again:** remove the label (`--remove-label`) and comment with the
   evidence.
 - **A closed finding has broken again:** reopen it (`gh issue reopen <number>`) and comment with the evidence: one
@@ -46,8 +46,8 @@ gh api --paginate "repos/$GH_REPO/issues?per_page=100&<filter>" \
 
 ### Filing a new finding
 
-- **One issue per defect.** The title states the defect in one line, as a fact ("Saving a contract with no end date
-  drops its day cap").
+- **One issue per defect.** The title states the defect in one line, as a fact ("Renaming a project from its settings
+  page clears its description").
 - **Labels:** `fandian`, `persona:$PERSONA`, `severity:<blocker|major|minor|cosmetic>`, `oracle:<layer>`, and on a
   focused run `focus:$FOCUS` on a finding in the focus's feature. They exist already; add no others.
 - **The body** leads with a header list: **Severity**, **Oracle** (the layer, and the claim, invariant or rule it
