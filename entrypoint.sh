@@ -39,8 +39,7 @@ if [ "${FANDIAN_CHECK:-}" = "1" ]; then
   echo "model         : ${FANDIAN_MODEL:-CLI default} (effort ${FANDIAN_EFFORT:-CLI default})"
   echo "run dir       : $RUN_DIR"
   echo "tools         : $(claude --version), playwright-mcp $(playwright-mcp --version 2>/dev/null || echo '?'), $(gh --version | head -1)"
-  echo "charter       : $(grep -c '' /work/CLAUDE.md) lines; its sections:"
-  grep -E '^##? ' /work/CLAUDE.md | sed 's/^/  /'
+  echo "charter       : $(grep -c '' /work/CLAUDE.md) lines; \`fand run --charter\` shows it"
   exit 0
 fi
 

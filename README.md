@@ -34,6 +34,7 @@ Then fill in `.env`:
 fand run ~/projects/example newcomer                  # a session of the newcomer persona
 fand run https://github.com/owner/example newcomer    # the same, cloned from the repository
 fand run ~/projects/example newcomer --check          # start the instance, print the wiring, stop
+fand run ~/projects/example newcomer --charter        # show the charter the tester would get, paged
 fand run ~/projects/example newcomer --focus search    # one feature only
 ```
 
