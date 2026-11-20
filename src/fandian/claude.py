@@ -2,6 +2,7 @@
 token draws on."""
 
 import json
+import math
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -19,21 +20,9 @@ _PLAN_PROBE = {
     "messages": [{"role": "user", "content": "ok"}],
 }
 
-# The reasons the API gives for refusing paid overage that mean it is switched off (or capped at
-# nothing) for the plan, org, seat or member. The rest - out of credits, a spend cap that lifts at
-# a reset, an unknown or failed lookup - leave it able to come back mid-run.
-_OVERAGE_OFF = frozenset(
-    {
-        "overage_not_provisioned",
-        "org_level_disabled",
-        "org_service_level_disabled",
-        "seat_tier_level_disabled",
-        "member_level_disabled",
-        "seat_tier_zero_credit_limit",
-        "group_zero_credit_limit",
-        "member_zero_credit_limit",
-    }
-)
+# The share of the plan's 5-hour and weekly limits past which no run starts: a run that starts
+# close to a limit is likely to finish past it, on paid overage at API rates.
+_UTILIZATION_CEILINGS = {"5h": 0.90, "7d": 0.95}
 
 
 class PlanError(Exception):
@@ -66,26 +55,26 @@ def model_choice() -> dict[str, str]:
 
 
 def check_plan(token: str) -> None:
-    problem, at_limit = _inspect(token)
+    problem, wait = _inspect(token)
     if problem is not None:
         raise PlanError(f"FANDIAN_CLAUDE_TOKEN cannot run the agent: {problem}.")
-    if at_limit:
-        raise PlanError("The Claude plan is at its usage limit; start the run once it resets.")
+    if wait is not None:
+        raise PlanError(wait)
 
 
-def _inspect(token: str) -> tuple[str | None, bool]:
-    """Why this token cannot run the agent (None if it can), and whether its plan is at its usage
-    limit right now.
+def _inspect(token: str) -> tuple[str | None, str | None]:
+    """Why this token cannot run the agent (None if it can), and why no run may start on its plan
+    right now (None if one may).
 
     An API key (sk-ant-api...) bills at API rates. Only usage counted against a plan comes back
     with the `anthropic-ratelimit-unified-*` headers (its 5-hour and weekly limits); a call billed
     at API rates gets the per-minute `requests-*`/`tokens-*` ones instead. A plan at its limit
-    answers 429 with the same headers. Paid overage must be off too, since it carries a run past
-    the plan's limits at API rates. The headers are undocumented, so a rename fails the check
-    closed rather than letting a run through unchecked. A 429 without them is raised as a
-    PlanError: it says nothing about the token."""
+    answers 429 with the same headers. Paid overage carries a run past the plan's limits at API
+    rates, so neither limit may be nearly used up (`_UTILIZATION_CEILINGS`). The headers are
+    undocumented, so a rename fails the check closed rather than letting a run through
+    unchecked. A 429 without them is raised as a PlanError: it says nothing about the token."""
     if not token.startswith("sk-ant-oat"):
-        return "it is not a `claude setup-token` token (sk-ant-oat...)", False
+        return "it is not a `claude setup-token` token (sk-ant-oat...)", None
 
     headers = {
         "Authorization": f"Bearer {token}",
@@ -95,25 +84,38 @@ def _inspect(token: str) -> tuple[str | None, bool]:
     try:
         status, response = _probe(headers)
     except ApiError as e:
-        return f"the plan check failed: HTTP {e.status}: {e.body[:200]}", False
+        return f"the plan check failed: HTTP {e.status}: {e.body[:200]}", None
     except OSError as e:
-        return f"the plan check failed: {e}", False
+        return f"the plan check failed: {e}", None
 
     if response.get("anthropic-ratelimit-unified-status") is None:
         if status == 429:
             # Says nothing about the token, so it is no reason to replace it.
             raise PlanError("The Claude plan check was rate limited (HTTP 429); try again shortly.")
-        return "it does not draw on a Claude plan (the API reported no plan limits)", False
+        return "it does not draw on a Claude plan (the API reported no plan limits)", None
 
-    overage = response.get("anthropic-ratelimit-unified-overage-status")
-    reason = response.get("anthropic-ratelimit-unified-overage-disabled-reason")
-    if overage != "rejected" or reason not in _OVERAGE_OFF:
-        return (
-            f"paid overage is not confirmed off on its plan (status {overage!r}, reason "
-            f"{reason!r}); overage bills at API rates past the plan's limits"
-        ), False
+    if status == 429:
+        return None, "The Claude plan is at its usage limit; start the run once it resets."
 
-    return None, status == 429
+    for window, ceiling in _UTILIZATION_CEILINGS.items():
+        reported = response.get(f"anthropic-ratelimit-unified-{window}-utilization", "")
+        try:
+            utilization = float(reported)
+        except ValueError:
+            utilization = None
+        if utilization is None or not math.isfinite(utilization) or utilization < 0:
+            return None, (
+                f"The Claude plan check failed: the API reported no usable {window} limit "
+                f"utilization ({reported!r})."
+            )
+        if utilization >= ceiling:
+            return None, (
+                f"The Claude plan's {window} limit is {utilization:.0%} used, at or past the "
+                f"{ceiling:.0%} a run may start at; a run from here would likely go on to paid "
+                "overage at API rates. Start it once the limit resets."
+            )
+
+    return None, None
 
 
 def _probe(headers: dict[str, str]) -> tuple[int, dict[str, str]]:

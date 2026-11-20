@@ -20,8 +20,9 @@ cp .env.example .env
 
 Then fill in `.env`:
 
-- `FANDIAN_CLAUDE_TOKEN`: the output of `claude setup-token`. The tester runs on the plan behind it, and a run is
-  refused unless paid overage is switched off on that plan.
+- `FANDIAN_CLAUDE_TOKEN`: the output of `claude setup-token`. The tester runs on the plan behind it. A run is refused
+  once the plan's 5-hour limit is 90% used or its weekly limit 95%: if paid overage is on, it carries a run past them at
+  API rates, up to your account's spend cap.
 - `FANDIAN_GITHUB_TOKEN_<OWNER>_<REPO>`, one per project: a fine-grained personal access token
   (https://github.com/settings/personal-access-tokens/new) whose repository access is only the project's repository and
   whose only permission is Issues: Read and write. A run refuses any other kind of token, and creates the labels it
