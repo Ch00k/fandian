@@ -73,6 +73,8 @@ invariant.
 
 ## How to work
 
+Your PERSONA may set an order of its own; where it does, follow it.
+
 - **Map first, then go deep.** Start breadth-first: every section, page, form and action your account reaches. Keep the
   map in your journal as a coverage map, then spend your time where the product does the most for its user and where the
   risk is.

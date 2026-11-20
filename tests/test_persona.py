@@ -6,11 +6,11 @@ from fandian.header import HeaderError
 
 
 def test_a_generic_persona_loads_with_its_body(project):
-    explorer = persona.load(target.load(str(project)), "explorer")
+    newcomer = persona.load(target.load(str(project)), "newcomer")
 
-    assert explorer.enabled
-    assert explorer.account == "user"
-    assert explorer.body.startswith("## PERSONA: explorer\n")
+    assert newcomer.enabled
+    assert newcomer.account == "empty"
+    assert newcomer.body.startswith("## PERSONA: newcomer\n")
 
 
 def test_a_project_adds_personas_of_its_own(project):
@@ -22,14 +22,14 @@ def test_a_project_adds_personas_of_its_own(project):
 
 
 def test_a_name_both_define_is_refused(project):
-    write(project, "personas/explorer.md", "+++\nenabled = true\n+++\n")
+    write(project, "personas/newcomer.md", "+++\nenabled = true\n+++\n")
 
-    with pytest.raises(HeaderError, match="already has: explorer"):
-        persona.load(target.load(str(project)), "explorer")
+    with pytest.raises(HeaderError, match="already has: newcomer"):
+        persona.load(target.load(str(project)), "newcomer")
 
 
 def test_an_unknown_persona_is_refused_with_the_ones_there_are(project):
-    with pytest.raises(HeaderError, match="No persona 'nobody'; there are: explorer"):
+    with pytest.raises(HeaderError, match="No persona 'nobody'; there are: newcomer"):
         persona.load(target.load(str(project)), "nobody")
 
 

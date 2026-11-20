@@ -13,9 +13,9 @@ from .target import TargetError
 
 _EXAMPLES = """\
 examples:
-  fand run ~/projects/example explorer                    a session of the explorer persona
-  fand run https://github.com/owner/example explorer      the same, from the repository
-  fand run ~/projects/example explorer --check            start the instance, print the wiring, stop
+  fand run ~/projects/example newcomer                    a session of the newcomer persona
+  fand run https://github.com/owner/example newcomer      the same, from the repository
+  fand run ~/projects/example newcomer --check            start the instance, print the wiring, stop
 """
 
 

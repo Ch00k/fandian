@@ -22,6 +22,7 @@ allowed_recipients = '@example\\.[a-z]+$'
 
 [accounts]
 user = { email = "dev@example.com", password = "devpassword" }
+empty = { email = "new@example.com", password = "devpassword" }
 
 [guide]
 urls = ["/help/"]

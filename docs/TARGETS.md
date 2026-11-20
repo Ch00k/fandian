@@ -107,7 +107,7 @@ names the personas it is written for:
 
 ```toml
 +++
-personas = ["explorer"]
+personas = ["newcomer"]
 +++
 ```
 
@@ -116,8 +116,8 @@ Write a focus from what the guide says about the feature, never from its code.
 ## Running it
 
 ```
-fand run ~/projects/example explorer --check
-fand run https://github.com/owner/example explorer
+fand run ~/projects/example newcomer --check
+fand run https://github.com/owner/example newcomer
 ```
 
 The repository named by `repo` needs a GitHub token in fandian's `.env`, under `FANDIAN_GITHUB_TOKEN_<OWNER>_<REPO>`:

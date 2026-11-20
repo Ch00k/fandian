@@ -19,7 +19,10 @@ def test_a_profile_loads_with_its_instance_inbox_guide_and_body(project):
         ("sh", "-c", "seed && serve"), {"SMTP_HOST": "mailpit"}, 8000, "/health/"
     )
     assert loaded.mail == target.Mail(r"@example\.[a-z]+$")
-    assert loaded.accounts == {"user": target.Account("dev@example.com", "devpassword")}
+    assert loaded.accounts == {
+        "user": target.Account("dev@example.com", "devpassword"),
+        "empty": target.Account("new@example.com", "devpassword"),
+    }
     assert loaded.guide_urls == ("/help/",)
     assert loaded.body.startswith("## TARGET: Example\n")
     assert loaded.token_setting == "GITHUB_TOKEN_OWNER_EXAMPLE_APP"
@@ -114,14 +117,14 @@ def test_a_repository_is_cloned_into_the_cache_and_brought_up_to_date(
 
 
 def test_a_focus_is_refused_for_a_persona_it_is_not_written_for(project):
-    write(project, "focus/search.md", '+++\npersonas = ["explorer"]\n+++\n\n## FOCUS\n')
+    write(project, "focus/search.md", '+++\npersonas = ["newcomer"]\n+++\n\n## FOCUS\n')
     loaded = target.load(str(project))
 
-    target.check_focus(loaded, "search", "explorer")
-    with pytest.raises(HeaderError, match="written for explorer, not novice"):
-        target.check_focus(loaded, "search", "novice")
+    target.check_focus(loaded, "search", "newcomer")
+    with pytest.raises(HeaderError, match="written for newcomer, not tourist"):
+        target.check_focus(loaded, "search", "tourist")
 
 
 def test_a_missing_focus_is_refused(project):
     with pytest.raises(HeaderError, match="does not exist"):
-        target.check_focus(target.load(str(project)), "nothing", "explorer")
+        target.check_focus(target.load(str(project)), "nothing", "newcomer")

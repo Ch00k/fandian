@@ -36,7 +36,7 @@ def test_a_token_that_reaches_the_repository_creates_the_missing_labels(monkeypa
     api = GitHub(labels=["fandian", "bug"])
     monkeypatch.setattr(github, "call", api)
 
-    wanted = github.labels("explorer", "search")
+    wanted = github.labels("newcomer", "search")
     assert github.check(TOKEN, REPO, wanted) == "private"
 
     assert set(wanted) <= api.labels
@@ -46,21 +46,21 @@ def test_a_token_that_reaches_the_repository_creates_the_missing_labels(monkeypa
 
 
 def test_labels_cover_every_severity_oracle_and_the_runs_persona_and_focus():
-    wanted = github.labels("explorer", "search")
+    wanted = github.labels("newcomer", "search")
 
     assert {"fandian", "fandian-run", "fandian:appears-fixed"} <= set(wanted)
     assert {f"severity:{s}" for s in ("blocker", "major", "minor", "cosmetic")} <= set(wanted)
     assert "oracle:guide" in wanted and "oracle:conventions" in wanted
-    assert {"persona:explorer", "focus:search"} <= set(wanted)
-    assert "focus:search" not in github.labels("explorer", None)
+    assert {"persona:newcomer", "focus:search"} <= set(wanted)
+    assert "focus:search" not in github.labels("newcomer", None)
 
 
 def test_every_label_page_is_read(monkeypatch):
-    many = [f"label-{i:03}" for i in range(150)] + list(github.LABELS) + ["persona:explorer"]
+    many = [f"label-{i:03}" for i in range(150)] + list(github.LABELS) + ["persona:newcomer"]
     api = GitHub(labels=many)
     monkeypatch.setattr(github, "call", api)
 
-    github.check(TOKEN, REPO, github.labels("explorer", None))
+    github.check(TOKEN, REPO, github.labels("newcomer", None))
 
     assert not [call for call in api.calls if call[0] == "POST"]
 
@@ -68,7 +68,7 @@ def test_every_label_page_is_read(monkeypatch):
 def test_a_public_repository_is_reported_as_such(monkeypatch):
     monkeypatch.setattr(github, "call", GitHub(private=False))
 
-    assert github.check(TOKEN, REPO, github.labels("explorer", None)) == "public"
+    assert github.check(TOKEN, REPO, github.labels("newcomer", None)) == "public"
 
 
 @pytest.mark.parametrize("token", ["", "ghp_classic", "gho_oauth"])
@@ -91,7 +91,7 @@ def test_a_token_that_cannot_file_findings_is_refused(monkeypatch, api, problem)
     monkeypatch.setattr(github, "call", api)
 
     with pytest.raises(github.TokenError, match=problem):
-        github.check(TOKEN, REPO, github.labels("explorer", None))
+        github.check(TOKEN, REPO, github.labels("newcomer", None))
 
 
 def test_an_outage_is_raised_as_it_is(monkeypatch):

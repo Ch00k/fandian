@@ -29,10 +29,10 @@ Then fill in `.env`:
 ## Run
 
 ```
-fand run ~/projects/example explorer                  # a session of the explorer persona
-fand run https://github.com/owner/example explorer    # the same, cloned from the repository
-fand run ~/projects/example explorer --check          # start the instance, print the wiring, stop
-fand run ~/projects/example explorer --focus search # one feature only
+fand run ~/projects/example newcomer                  # a session of the newcomer persona
+fand run https://github.com/owner/example newcomer    # the same, cloned from the repository
+fand run ~/projects/example newcomer --check          # start the instance, print the wiring, stop
+fand run ~/projects/example newcomer --focus search    # one feature only
 ```
 
 A repository is cloned into `~/.cache/fandian/` with your own git credentials, and brought up to date on each run.

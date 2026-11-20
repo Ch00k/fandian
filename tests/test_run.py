@@ -6,7 +6,7 @@ import pytest
 from fandian import instance, run, target
 from fandian.persona import Persona
 
-EXPLORER = Persona("explorer", enabled=True, account="user", body="")
+NEWCOMER = Persona("newcomer", enabled=True, account="user", body="")
 
 
 @pytest.fixture
@@ -15,9 +15,9 @@ def example(project):
 
 
 def test_the_container_gets_the_target_its_mode_inbox_guide_and_account(example):
-    assert run.container_settings(example, EXPLORER, None) == {
+    assert run.container_settings(example, NEWCOMER, None) == {
         "TARGET": "example-app",
-        "PERSONA": "explorer",
+        "PERSONA": "newcomer",
         "MODE": "oracle",
         "BASE_URL": "http://localhost:8000",
         "GH_REPO": "owner/Example.app",
@@ -32,7 +32,7 @@ def test_the_container_gets_the_target_its_mode_inbox_guide_and_account(example)
 def test_a_target_without_mail_or_guide_passes_neither(example):
     bare = replace(example, mail=None, guide_urls=None)
 
-    passed = run.container_settings(bare, EXPLORER, None)
+    passed = run.container_settings(bare, NEWCOMER, None)
 
     assert passed["MODE"] == "explorer"
     assert "INBOX_URL" not in passed
@@ -40,25 +40,25 @@ def test_a_target_without_mail_or_guide_passes_neither(example):
 
 
 def test_a_persona_without_an_account_starts_signed_out(example):
-    passed = run.container_settings(example, replace(EXPLORER, account=None), None)
+    passed = run.container_settings(example, replace(NEWCOMER, account=None), None)
 
     assert not any(name.startswith("ACCOUNT") for name in passed)
 
 
 def test_a_focused_run_passes_its_focus_and_is_named_by_it(example):
-    assert run.container_settings(example, EXPLORER, "search")["FOCUS"] == "search"
-    assert run.run_name(example, EXPLORER, "search") == "example-app-explorer-search"
-    assert run.run_name(example, EXPLORER, None) == "example-app-explorer"
+    assert run.container_settings(example, NEWCOMER, "search")["FOCUS"] == "search"
+    assert run.run_name(example, NEWCOMER, "search") == "example-app-newcomer-search"
+    assert run.run_name(example, NEWCOMER, None) == "example-app-newcomer"
 
 
 def test_a_switched_off_persona_is_refused(example):
     with pytest.raises(SystemExit, match="switched off"):
-        run.container_settings(example, replace(EXPLORER, enabled=False), None)
+        run.container_settings(example, replace(NEWCOMER, enabled=False), None)
 
 
 def test_a_persona_whose_account_the_target_lacks_is_refused(example):
     with pytest.raises(SystemExit, match="'admin', which the example-app profile"):
-        run.container_settings(example, replace(EXPLORER, account="admin"), None)
+        run.container_settings(example, replace(NEWCOMER, account="admin"), None)
 
 
 def test_the_agent_joins_the_instance_and_gets_settings_by_name_only():
