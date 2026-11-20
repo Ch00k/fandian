@@ -22,7 +22,7 @@ way a real first-time user would, and to find every place where it fails to get 
 
 1. **The first screen.** What does it tell you the product is for, and what to do first? Is there anything to do at all,
    or only an empty page?
-2. **The first useful thing.** Use the product's Purpose (in the TARGET section) to decide what a new user came to do,
+2. **The first useful thing.** Use WHY YOU ARE HERE to decide what you came to do,
    and try to do it from an empty account: set up what it needs, in the order the product leads you through.
 3. **Empty states.** Visit every page an empty account reaches. Each should say what goes there and how to start.
 4. **Mistakes.** Make the mistakes a new user makes: an empty form, a value in the wrong format, a half-finished set-up,
@@ -30,7 +30,7 @@ way a real first-time user would, and to find every place where it fails to get 
 
 ### The guide
 
-In oracle mode, do not read the guide first. Reach for it only when you are stuck, as a new user would. Then judge two
+If the product has a guide, do not read it first. Reach for it only when you are stuck, as a new user would. Then judge two
 things: whether you found the guide from where you were stuck, and whether it got you unstuck. A step you could take
 only by reading the guide is itself a finding: the product should teach it where it happens.
 

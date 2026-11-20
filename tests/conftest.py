@@ -24,15 +24,11 @@ allowed_recipients = '@example\\.[a-z]+$'
 user = { email = "dev@example.com", password = "devpassword" }
 empty = { email = "new@example.com", password = "devpassword" }
 
-[guide]
-urls = ["/help/"]
+[harness]
+path = "/fake/"
 +++
 
-## TARGET: Example
-
-### Purpose
-
-Keeps examples.
+You keep examples, and came here to keep them in one place.
 """
 
 
@@ -50,8 +46,8 @@ def env_file(tmp_path, monkeypatch):
 
 @pytest.fixture
 def project(tmp_path) -> Path:
-    """A checkout made testable: a Dockerfile, and a .fandian/ holding a profile with an inbox
-    and a guide."""
+    """A checkout made testable: a Dockerfile, and a .fandian/ holding a profile with mail and a
+    harness."""
     root = tmp_path / "example"
     (root / ".fandian").mkdir(parents=True)
     (root / "Dockerfile").write_text("FROM scratch\n")

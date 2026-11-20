@@ -1,10 +1,10 @@
 """`fand run`: check what can be checked on the host, build both images, start the target's
 instance and run one persona's session against it in the agent's container.
 
-The container gets exactly what the charter names: the target and its mode, the instance's and
-the inbox's addresses, the persona's account, the repository and its token, and the run
-directory. Secrets travel in the docker client's environment and are named with `-e NAME`, so none
-appears in a process listing.
+The container gets what a user would have, by the names the charter uses: the product's address,
+the persona's own login and mailbox, and the harness, when the target has one; and what reporting
+needs: the repository and its token, and the run directory. Secrets travel in the docker
+client's environment and are named with `-e NAME`, so none appears in a process listing.
 """
 
 import datetime as dt
@@ -38,16 +38,13 @@ def container_settings(target: Target, persona: Persona, focus: str | None) -> d
     passed = {
         "TARGET": target.name,
         "PERSONA": persona.name,
-        "MODE": target.mode,
         "BASE_URL": target.base_url,
         "GH_REPO": target.repo,
     }
     if focus is not None:
         passed["FOCUS"] = focus
-    if target.mail is not None:
-        passed["INBOX_URL"] = instance.INBOX_URL
-    if target.guide_urls is not None:
-        passed["GUIDE_URLS"] = " ".join(f"{target.base_url}{url}" for url in target.guide_urls)
+    if target.harness is not None:
+        passed["HARNESS_URL"] = f"{target.base_url}{target.harness}"
 
     if persona.account is not None:
         account = target.accounts.get(persona.account)
@@ -56,11 +53,9 @@ def container_settings(target: Target, persona: Persona, focus: str | None) -> d
                 f"The {persona.name} persona signs in as {persona.account!r}, which the "
                 f"{target.name} profile's [accounts] lacks."
             )
-        passed |= {
-            "ACCOUNT": persona.account,
-            "ACCOUNT_EMAIL": account.email,
-            "ACCOUNT_PASSWORD": account.password,
-        }
+        passed |= {"ACCOUNT_EMAIL": account.email, "ACCOUNT_PASSWORD": account.password}
+        if target.mail is not None:
+            passed["MAILBOX_URL"] = instance.MAILBOX_URL
 
     return passed
 
@@ -139,7 +134,9 @@ def run(target: Target, persona: Persona, *, focus: str | None, check: bool) -> 
 
         signal.signal(signal.SIGTERM, _stop)
         signal.signal(signal.SIGHUP, _stop)
-        with instance.started(target, run, None if check else run_dir / "instance.log"):
+        mailbox = passed.get("ACCOUNT_EMAIL") if "MAILBOX_URL" in passed else None
+        log = None if check else run_dir / "instance.log"
+        with instance.started(target, run, mailbox, log):
             mounted = None if check else run_dir
             argv = agent_argv(list(passed), run, charter_file, mounted, tty=sys.stdin.isatty())
             code = subprocess.run(argv, env=os.environ | passed).returncode

@@ -16,15 +16,18 @@ The profile, `.fandian/profile.md`, has a header that wires the instance:
       port        the port it serves on, inside its own network namespace
       health      the path polled until it answers, before the agent starts
 
-    [mail]        optional; present = a Mailpit inbox beside the instance, as `mailpit`
+    [mail]        optional; present = a Mailpit inbox beside the instance, as `mailpit`, and a
+                  mailbox of the persona's own address in front of it for the tester
       allowed_recipients  optional; Mailpit refuses every other recipient at RCPT
 
     [accounts]    from the seed, by a key a persona names: { email, password }
 
-    [guide]       optional; present = oracle mode
-      urls        the in-app guide's pages, as paths on the instance
+    [harness]     optional; the page that shows what the instance's fake services received from
+                  the signed-in account and sets what they answer next
+      path        its path on the instance
 
-The body below the header is the target's section of the charter. Focuses are
+The header is fandian's alone. The body below it is the one part of the project the tester reads:
+why its user is there, in a few sentences addressed to the tester. Focuses are
 `.fandian/focus/<focus>.md`, each with a header naming the personas it is written for:
 
     personas      a list of persona names; `run` refuses any other
@@ -43,12 +46,12 @@ from .console import working
 DIRECTORY = ".fandian"
 
 _KEYS = {"repo": str, "instance": dict, "accounts": dict}
-_OPTIONAL_KEYS = {"mail": dict, "guide": dict}
+_OPTIONAL_KEYS = {"mail": dict, "harness": dict}
 _INSTANCE_KEYS = {"command": str, "port": int, "health": str}
 _INSTANCE_OPTIONAL_KEYS = {"env": dict}
 _MAIL_KEYS = {"allowed_recipients": str}
 _ACCOUNT_KEYS = {"email": str, "password": str}
-_GUIDE_KEYS = {"urls": list}
+_HARNESS_KEYS = {"path": str}
 _FOCUS_KEYS = {"personas": list}
 
 
@@ -83,19 +86,15 @@ class Target:
     instance: Instance
     mail: Mail | None
     accounts: dict[str, Account]
-    # The guide's pages, as paths on the instance; None in explorer mode.
-    guide_urls: tuple[str, ...] | None
-    # The profile's charter section.
-    body: str
+    # The harness's path on the instance, if it has one.
+    harness: str | None
+    # Why the user is there: the one part of the profile the tester reads.
+    motive: str
 
     @property
     def name(self) -> str:
         """The repository's name, made fit for Docker's names and the run directory's."""
         return slug(self.repo.split("/")[1])
-
-    @property
-    def mode(self) -> str:
-        return "explorer" if self.guide_urls is None else "oracle"
 
     @property
     def base_url(self) -> str:
@@ -185,16 +184,18 @@ def load(location: str) -> Target:
         header.check_keys(path, account, _ACCOUNT_KEYS, where=f"[accounts] {key} ")
         accounts[key] = Account(account["email"], account["password"])
 
-    guide_urls = None
-    if "guide" in found:
-        header.check_keys(path, found["guide"], _GUIDE_KEYS, where="[guide] ")
-        guide_urls = tuple(found["guide"]["urls"])
-        if not guide_urls or not all(
-            isinstance(url, str) and url.startswith("/") for url in guide_urls
-        ):
-            raise header.HeaderError(f"{path}: [guide] urls must be paths, starting with /")
+    harness = None
+    if "harness" in found:
+        header.check_keys(path, found["harness"], _HARNESS_KEYS, where="[harness] ")
+        harness = found["harness"]["path"]
+        if not harness.startswith("/"):
+            raise header.HeaderError(f"{path}: [harness] path must start with /")
 
-    return Target(root, found["repo"], instance, mail, accounts, guide_urls, header.body(path))
+    motive = header.body(path)
+    if not motive.strip():
+        raise header.HeaderError(f"{path}: its body, why the user is there, is empty")
+
+    return Target(root, found["repo"], instance, mail, accounts, harness, motive)
 
 
 def check_focus(target: Target, focus: str, persona: str) -> None:

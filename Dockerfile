@@ -52,4 +52,5 @@ RUN curl -fsSL https://claude.ai/install.sh | bash -s "${CLAUDE_VERSION}"
 # The files edited most often come last, so editing them rebuilds only these layers.
 COPY --chmod=755 entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY progress.jq /opt/progress.jq
+COPY src/fandian/mailbox.py /opt/mailbox.py
 CMD ["entrypoint.sh"]

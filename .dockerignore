@@ -3,3 +3,4 @@
 !claude-config.json
 !entrypoint.sh
 !progress.jq
+!src/fandian/mailbox.py

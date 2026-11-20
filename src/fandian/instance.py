@@ -1,5 +1,6 @@
 """The target's instance: a Docker network of the run's own holding the instance and, for a
-target with [mail], its Mailpit, all destroyed with their data when the run ends.
+target with [mail], its Mailpit and the tester's mailbox in front of it, all destroyed with their
+data when the run ends.
 
 Nothing is published to the host. The agent joins the instance's network namespace, and the
 host's own checks (Mailpit's SMTP greeting, the health path) run in short-lived containers of the
@@ -22,8 +23,10 @@ MAILPIT_IMAGE = "axllent/mailpit:v1.34.0"
 # The name the instance reaches its Mailpit by, and Mailpit's ports.
 MAILPIT_HOST = "mailpit"
 SMTP_PORT = 1025
-INBOX_PORT = 8025
-INBOX_URL = f"http://{MAILPIT_HOST}:{INBOX_PORT}"
+MAILPIT_URL = f"http://{MAILPIT_HOST}:8025"
+# Where the tester reads its own mail (src/fandian/mailbox.py, in the tester's image).
+MAILBOX_HOST = "mailbox"
+MAILBOX_URL = f"http://{MAILBOX_HOST}:8000"
 
 LABEL = "fandian.run"
 MAIL_TIMEOUT = 60
@@ -74,6 +77,15 @@ def mailpit_argv(target: Target, run: str) -> list[str]:
     return argv + [MAILPIT_IMAGE]
 
 
+def mailbox_argv(run: str, address: str) -> list[str]:
+    """The tester's mailbox, serving only the mail sent to `address`."""
+    argv = ["docker", "run", "-d", "--name", f"{run}-mailbox", "--network", run]
+    argv += ["--network-alias", MAILBOX_HOST, "--label", f"{LABEL}={run}"]
+    argv += ["--cap-drop", "ALL", "--security-opt", "no-new-privileges"]
+    argv += ["-e", f"ADDRESS={address}", "-e", f"MAILPIT_URL={MAILPIT_URL}"]
+    return argv + [AGENT_IMAGE, "python3", "/opt/mailbox.py"]
+
+
 def probe_argv(network: str, script: str) -> list[str]:
     """A check run from inside the run's network, in the agent's image, with nothing to spare."""
     return [
@@ -83,10 +95,11 @@ def probe_argv(network: str, script: str) -> list[str]:
 
 
 @contextmanager
-def started(target: Target, run: str, log: Path | None) -> Generator[str]:
-    """Start the run's network, Mailpit and instance, and yield the instance's container name
-    once its health path answers. Afterwards the instance's log goes to `log`, when given, and
-    everything the run started is removed, whatever happened."""
+def started(target: Target, run: str, mailbox: str | None, log: Path | None) -> Generator[str]:
+    """Start the run's network, Mailpit with the mailbox of the address `mailbox`, and the
+    instance, and yield the instance's container name once its health path answers. Afterwards
+    the instance's log goes to `log`, when given, and everything the run started is removed,
+    whatever happened."""
     instance = f"{run}-instance"
     _docker("network", "create", "--label", f"{LABEL}={run}", run)
     try:
@@ -94,6 +107,12 @@ def started(target: Target, run: str, log: Path | None) -> Generator[str]:
             with working("Starting Mailpit"):
                 _docker(*mailpit_argv(target, run)[1:])
                 _wait_for_smtp(run)
+            if mailbox is not None:
+                with working(f"Starting the mailbox of {mailbox}"):
+                    _docker(*mailbox_argv(run, mailbox)[1:])
+                    _wait_for(
+                        run, f"curl -fsS -o /dev/null --max-time 5 {MAILBOX_URL}/", "The mailbox"
+                    )
 
         with working(f"Starting {target.name} and waiting for {target.instance.health}"):
             _docker(*instance_argv(target, run)[1:])
@@ -113,10 +132,15 @@ def _wait_for_smtp(run: str) -> None:
         f"exec 3<>/dev/tcp/{MAILPIT_HOST}/{SMTP_PORT} && read -r -t 5 greeting <&3 "
         '&& [[ "$greeting" == 220* ]]'
     )
+    _wait_for(run, script, "Mailpit's SMTP server")
+
+
+def _wait_for(run: str, script: str, what: str) -> None:
+    """Until the probe succeeds from the run's network, or MAIL_TIMEOUT runs out."""
     deadline = time.monotonic() + MAIL_TIMEOUT
     while subprocess.run(probe_argv(run, script), capture_output=True).returncode != 0:
         if time.monotonic() > deadline:
-            raise InstanceError(f"Mailpit gave no SMTP greeting within {MAIL_TIMEOUT} seconds.")
+            raise InstanceError(f"{what} did not answer within {MAIL_TIMEOUT} seconds.")
         time.sleep(1)
 
 

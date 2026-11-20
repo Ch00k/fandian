@@ -42,3 +42,14 @@ def test_a_probe_runs_unprivileged_in_the_agents_image():
     assert argv[argv.index("--network") + 1] == "container:fandian-x-instance"
     assert argv[argv.index("--cap-drop") + 1] == "ALL"
     assert argv[-4:] == [instance.AGENT_IMAGE, "bash", "-c", "curl -fsS http://localhost/"]
+
+
+def test_the_mailbox_serves_one_address_unprivileged_from_the_testers_image():
+    argv = instance.mailbox_argv("fandian-x", "new@example.com")
+
+    assert argv[argv.index("--network") + 1] == "fandian-x"
+    assert argv[argv.index("--network-alias") + 1] == "mailbox"
+    assert argv[argv.index("--cap-drop") + 1] == "ALL"
+    assert "ADDRESS=new@example.com" in argv
+    assert "MAILPIT_URL=http://mailpit:8025" in argv
+    assert argv[-3:] == [instance.AGENT_IMAGE, "python3", "/opt/mailbox.py"]

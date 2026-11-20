@@ -52,8 +52,9 @@ gh api --paginate "repos/$GH_REPO/issues?per_page=100&<filter>" \
   focused run `focus:$FOCUS` on a finding in the focus's feature. They exist already; add no others.
 - **The body** leads with a header list: **Severity**, **Oracle** (the layer, and the claim, invariant or rule it
   breaks: for `guide`, the page's URL with its `#anchor` and the sentence quoted), **Persona**, **Account**, **Area**
-  (the page's path), **Preconditions** (seeded accounts and data, and anything you changed first, such as the date on a
-  test clock) and **Run** (your run directory's name). Then exact steps to reproduce, expected, actual, and evidence.
+  (the page's path), **Preconditions** (what you set up from your account as you found it, and anything you changed
+  first in the harness, such as the date) and **Run** (your run directory's name). Then exact steps to reproduce,
+  expected, actual, and evidence.
 - **Evidence:** GitHub cannot take attachments through `gh`, so put text evidence (a response, console errors, a trimmed
   traceback) in the body, and name screenshots and documents by their file name in `evidence/`; the owner reads them
   from the run directory.
@@ -65,9 +66,9 @@ gh api --paginate "repos/$GH_REPO/issues?per_page=100&<filter>" \
   number it returns in your journal.
 
 **On a public repository** (`$REPO_VISIBILITY` is `public`), anything filed is readable by anyone. A finding that would
-show credentials other than the seed's, secrets, or a security weakness (one user reaching another's data, a way past a
-check) stays in `$RUN_DIR/issues/` and is not filed; the run record counts it as "held locally" without describing it.
-On a private repository, everything is filed.
+show credentials other than your own login, secrets, or a security weakness (one user reaching another's data, a way
+past a check) stays in `$RUN_DIR/issues/` and is not filed; the run record counts it as "held locally" without
+describing it. On a private repository, everything is filed.
 
 ### The run record
 

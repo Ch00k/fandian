@@ -7,13 +7,12 @@ from fandian import target
 from fandian.header import HeaderError
 
 
-def test_a_profile_loads_with_its_instance_inbox_guide_and_body(project):
+def test_a_profile_loads_with_its_instance_mail_harness_and_motive(project):
     loaded = target.load(str(project))
 
     assert loaded.checkout == project
     assert loaded.repo == "owner/Example.app"
     assert loaded.name == "example-app"
-    assert loaded.mode == "oracle"
     assert loaded.base_url == "http://localhost:8000"
     assert loaded.instance == target.Instance(
         ("sh", "-c", "seed && serve"), {"SMTP_HOST": "mailpit"}, 8000, "/health/"
@@ -23,20 +22,19 @@ def test_a_profile_loads_with_its_instance_inbox_guide_and_body(project):
         "user": target.Account("dev@example.com", "devpassword"),
         "empty": target.Account("new@example.com", "devpassword"),
     }
-    assert loaded.guide_urls == ("/help/",)
-    assert loaded.body.startswith("## TARGET: Example\n")
+    assert loaded.harness == "/fake/"
+    assert loaded.motive == "You keep examples, and came here to keep them in one place.\n"
     assert loaded.token_setting == "GITHUB_TOKEN_OWNER_EXAMPLE_APP"
 
 
-def test_a_profile_without_mail_or_guide_runs_in_explorer_mode_with_no_inbox(project):
+def test_a_profile_without_mail_or_harness_has_neither(project):
     text = PROFILE.replace("[mail]\nallowed_recipients = '@example\\.[a-z]+$'\n", "")
-    write(project, "profile.md", text.replace('[guide]\nurls = ["/help/"]\n', ""))
+    write(project, "profile.md", text.replace('[harness]\npath = "/fake/"\n', ""))
 
     loaded = target.load(str(project))
 
-    assert loaded.mode == "explorer"
     assert loaded.mail is None
-    assert loaded.guide_urls is None
+    assert loaded.harness is None
 
 
 def test_mail_without_an_allow_list_takes_every_recipient(project):
@@ -49,13 +47,14 @@ def test_mail_without_an_allow_list_takes_every_recipient(project):
     ("change", "problem"),
     [
         (("allowed_recipients", "allowed"), "unknown: allowed"),
-        (('urls = ["/help/"]', 'urls = ["help"]'), "must be paths"),
-        (('urls = ["/help/"]', "urls = []"), "must be paths"),
+        (('path = "/fake/"', 'path = "fake/"'), "path must start with /"),
+        (('path = "/fake/"', 'where = "/fake/"'), "unknown: where"),
+        (("You keep examples, and came here to keep them in one place.", ""), "is empty"),
         (('SMTP_HOST = "mailpit"', "SMTP_HOST = 1"), "env values must be strings"),
         (('health = "/health/"', 'health = "health"'), "health must be a path"),
         (("port = 8000\n", ""), "missing: port"),
         (('repo = "owner/Example.app"', 'repo = "example"'), "not owner/name"),
-        (("[guide]", "[other]"), "unknown: other"),
+        (("[harness]", "[other]"), "unknown: other"),
     ],
 )
 def test_a_malformed_profile_is_refused(project, change, problem):
@@ -108,12 +107,12 @@ def test_a_repository_is_cloned_into_the_cache_and_brought_up_to_date(
 
     owner = target.slug(project.parent.name)
     assert loaded.checkout == tmp_path / "cache" / "fandian" / owner / "example"
-    assert loaded.mode == "oracle"
+    assert loaded.harness == "/fake/"
 
-    write(project, "profile.md", PROFILE.replace('[guide]\nurls = ["/help/"]\n', ""))
-    subprocess.run([*git, "commit", "-q", "-am", "no guide"], check=True)
+    write(project, "profile.md", PROFILE.replace('[harness]\npath = "/fake/"\n', ""))
+    subprocess.run([*git, "commit", "-q", "-am", "no harness"], check=True)
 
-    assert target.load(f"file://{project}").mode == "explorer"
+    assert target.load(f"file://{project}").harness is None
 
 
 def test_a_focus_is_refused_for_a_persona_it_is_not_written_for(project):

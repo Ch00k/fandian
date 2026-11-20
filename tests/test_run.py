@@ -14,35 +14,33 @@ def example(project):
     return target.load(str(project))
 
 
-def test_the_container_gets_the_target_its_mode_inbox_guide_and_account(example):
+def test_the_container_gets_the_address_login_mailbox_and_harness(example):
+    """What a user would have, and nothing about how the product is set up."""
     assert run.container_settings(example, NEWCOMER, None) == {
         "TARGET": "example-app",
         "PERSONA": "newcomer",
-        "MODE": "oracle",
         "BASE_URL": "http://localhost:8000",
         "GH_REPO": "owner/Example.app",
-        "INBOX_URL": "http://mailpit:8025",
-        "GUIDE_URLS": "http://localhost:8000/help/",
-        "ACCOUNT": "user",
+        "HARNESS_URL": "http://localhost:8000/fake/",
         "ACCOUNT_EMAIL": "dev@example.com",
         "ACCOUNT_PASSWORD": "devpassword",
+        "MAILBOX_URL": "http://mailbox:8000",
     }
 
 
-def test_a_target_without_mail_or_guide_passes_neither(example):
-    bare = replace(example, mail=None, guide_urls=None)
+def test_a_target_without_mail_or_harness_passes_neither(example):
+    passed = run.container_settings(replace(example, mail=None, harness=None), NEWCOMER, None)
 
-    passed = run.container_settings(bare, NEWCOMER, None)
-
-    assert passed["MODE"] == "explorer"
-    assert "INBOX_URL" not in passed
-    assert "GUIDE_URLS" not in passed
+    assert "MAILBOX_URL" not in passed
+    assert "HARNESS_URL" not in passed
+    assert passed["ACCOUNT_EMAIL"] == "dev@example.com"
 
 
 def test_a_persona_without_an_account_starts_signed_out(example):
     passed = run.container_settings(example, replace(NEWCOMER, account=None), None)
 
     assert not any(name.startswith("ACCOUNT") for name in passed)
+    assert "MAILBOX_URL" not in passed
 
 
 def test_a_focused_run_passes_its_focus_and_is_named_by_it(example):
